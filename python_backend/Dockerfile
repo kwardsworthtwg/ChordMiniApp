@@ -82,10 +82,20 @@ COPY error_handlers.py .
 RUN rm -rf models/Chord-CNN-LSTM && \
 git clone --depth 1 https://github.com/ptnghia-j/chord-cnn-lstm-model.git models/Chord-CNN-LSTM
 
+# The Beat-Transformer folder copied above is also an empty git submodule
+# placeholder. Clone the real repo so the DilatedTransformer code and the
+# fold_4 checkpoint are present, then trim the large training-only
+# directories (data/save/test_audio) and the other 7 fold checkpoints that
+# aren't needed at inference time, mirroring the previous .dockerignore intent.
+RUN rm -rf models/Beat-Transformer && \
+git clone --depth 1 https://github.com/ptnghia-j/beat-transformer-model.git models/Beat-Transformer && \
+rm -rf models/Beat-Transformer/.git models/Beat-Transformer/data models/Beat-Transformer/save models/Beat-Transformer/test_audio && \
+find models/Beat-Transformer/checkpoint -type f ! -name 'fold_4_trf_param.pt' -delete
+
 COPY compat/ compat/
 # Ensure legacy scipy_patch.py is not present (use compat/ patches instead)
 RUN rm -f /app/scipy_patch.py || true
-# Note: BTC models and large Beat-Transformer files excluded via .dockerignore to reduce container size
+# Note: BTC models excluded via .dockerignore to reduce container size
 
 # Create non-root user for security BEFORE downloading models
 RUN useradd --create-home --shell /bin/bash --uid 1001 app \
