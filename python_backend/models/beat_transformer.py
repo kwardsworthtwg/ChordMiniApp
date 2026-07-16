@@ -189,7 +189,16 @@ import sys
 import os
 beat_transformer_path = os.path.join(os.path.dirname(__file__), "Beat-Transformer", "code")
 sys.path.append(beat_transformer_path)
-from DilatedTransformer import Demixed_DilatedTransformerModel
+DILATED_TRANSFORMER_AVAILABLE = False
+try:
+    from DilatedTransformer import Demixed_DilatedTransformerModel
+    DILATED_TRANSFORMER_AVAILABLE = True
+except Exception as e:
+    if DEBUG:
+        print(f"Warning: DilatedTransformer import failed: {e}")
+        class Demixed_DilatedTransformerModel:
+            def __init__(self, *args, **kwargs):
+                raise RuntimeError("Beat-Transformer model unavailable: DilatedTransformer module not found in this deployment.")
 
 def is_beat_transformer_available():
     """
